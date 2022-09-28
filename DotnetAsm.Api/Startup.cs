@@ -63,7 +63,6 @@ public class Startup
             {
                 spaBuilder.UseProxyToSpaDevelopmentServer(_configuration.GetValue<string>("FrontendUrl")!);
             }
-
         });
     }
 }
