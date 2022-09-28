@@ -15,8 +15,7 @@ public class AsmGenerator : IAsmGenerator
     private readonly CodeWriterSettings _codeWriterSettings;
     private readonly StringBuilder _asmStringBuilder;
     private readonly StringBuilder _stdErrStringBuilder;
-    private StringBuilder? _asmSummaryStringBuilder;
-    private bool _asmSection;
+    private readonly StringBuilder _asmSummaryStringBuilder;
 
     public AsmGenerator(ICodeWriter codeWriter, IOptions<CodeWriterSettings> codeWriterOptions)
     {
@@ -24,15 +23,11 @@ public class AsmGenerator : IAsmGenerator
         _codeWriterSettings = codeWriterOptions.Value;
         _asmStringBuilder = new StringBuilder();
         _stdErrStringBuilder = new StringBuilder();
+        _asmSummaryStringBuilder = new StringBuilder();
     }
 
     public async Task<AsmGenerationResponse> GenerateAsm(AsmGenerationRequest request, CancellationToken ct)
     {
-        if (request.GenerateSummary)
-        {
-            _asmSummaryStringBuilder = new StringBuilder();
-        }
-        
         await _codeWriter.WriteCodeAsync(request.CsharpCode);
 
         using var dotnetBuildProcess = new Process
@@ -40,12 +35,12 @@ public class AsmGenerator : IAsmGenerator
             StartInfo = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = $"build {Path.GetDirectoryName(_codeWriterSettings.WritePath)} -c Release --no-self-contained /p:WarningLevel=0 /p:TreatWarningsAsErrors=false",
+                Arguments = $"build {Path.GetDirectoryName(_codeWriterSettings.WritePath)} -c Release --no-self-contained",
                 EnvironmentVariables =
                 {
-                    ["DOTNET_TC_QuickJitForLoops"] = "1",
+                    ["SuppressNETCoreSdkPreviewMessage"] = "true",
+                    ["DOTNET_NOLOGO"] = "1",
                     ["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1",
-                    ["DOTNET_MULTILEVEL_LOOKUP"] = "1",
                     ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
                 },
                 UseShellExecute = false,
@@ -79,6 +74,7 @@ public class AsmGenerator : IAsmGenerator
                 EnvironmentVariables =
                 {
                     ["DOTNET_JitDisasm"] = request.MethodName,
+                    ["DOTNET_JitDisasmSummary"] = "1",
                     ["DOTNET_ReadyToRun"] = request.UseReadyToRun ? "1" : "0",
                     ["DOTNET_TieredPGO"] = request.UsePgo ? "1" : "0",
                     ["DOTNET_TieredCompilation"] = request.UsePgo || request.UseTieredCompilation ? "1" : "0"
@@ -110,6 +106,7 @@ public class AsmGenerator : IAsmGenerator
         return new AsmGenerationResponse
         {
             Asm = _asmStringBuilder.ToString(),
+            AsmSummary = _asmSummaryStringBuilder.ToString(),
             Errors = _stdErrStringBuilder.Length > 0 ? _stdErrStringBuilder.ToString() : null
         };
     }
@@ -124,31 +121,20 @@ public class AsmGenerator : IAsmGenerator
     {
         if (string.IsNullOrEmpty(args.Data)) return;
 
-        if (!_asmSection)
+        if (args.Data.Contains("JIT compiled"))
         {
-            _asmSection = IsAsmSectionStart(args.Data);
-
-            if (_asmSection)
-            {
-                _asmStringBuilder.AppendLine(args.Data);
-            }
+            _asmSummaryStringBuilder.AppendLine(args.Data);
         }
         else
         {
             _asmStringBuilder.AppendLine(args.Data);
-            _asmSection = !IsAsmSectionEnd(args.Data);
-            if (!_asmSection)
+            if (IsAsmSectionEnd(args.Data))
             {
                 _asmStringBuilder.AppendLine();
             }
         }
     }
 
-    private bool IsAsmSectionStart(string line)
-    {
-        return line.AsSpan().StartsWith("; Assembly listing for method");
-    }
-    
     private bool IsAsmSectionEnd(string line)
     {
         return line.AsSpan().StartsWith("; Total bytes of code");
