@@ -404,3 +404,4 @@ riderModule.iml
 /_ReSharper.Caches/
 
 DotnetAsm.Sandbox/Program.cs
+artifacts/*
