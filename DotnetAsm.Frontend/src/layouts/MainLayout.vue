@@ -1,23 +1,30 @@
 <template>
     <div class="row q-px-md">
         <div class="col q-py-sm">
-            <q-input outlined dense v-model="methodToCompile" label="Method to compile" style="max-width: 400px">
-                <template v-slot:append>
-                    <q-icon name="help">
-                        <q-tooltip class="text-body2">
-                            You can use <strong>*</strong> as a wildcard character.
-                            <br />
-                            <br />
-                            Examples:
-                            <ul>
-                                <li>TestMethod* will search for any method name that <strong>starts with</strong> TestMethod</li>
-                                <li>*TestMethod will search for any method name that <strong>ends with</strong> TestMethod</li>
-                                <li>*TestMethod* will search for every method name <strong>containing</strong> TestMethod</li>
-                            </ul>
-                        </q-tooltip>
-                    </q-icon>
-                </template>
-            </q-input>
+            <div class="row justify-between items-center q-pr-sm">
+                <q-input outlined dense v-model="methodToCompile" label="Method to compile" style="max-width: 400px">
+                    <template v-slot:append>
+                        <q-icon name="help">
+                            <q-tooltip class="text-body2">
+                                You can use <strong>*</strong> as a wildcard character.
+                                <br />
+                                <br />
+                                Examples:
+                                <ul>
+                                    <li>
+                                        TestMethod* will search for any method name that <strong>starts with</strong> TestMethod
+                                    </li>
+                                    <li>
+                                        *TestMethod will search for any method name that <strong>ends with</strong> TestMethod
+                                    </li>
+                                    <li>*TestMethod* will search for every method name <strong>containing</strong> TestMethod</li>
+                                </ul>
+                            </q-tooltip>
+                        </q-icon>
+                    </template>
+                </q-input>
+                <q-btn outline color="primary" style="height: 28px" @click="resetEditorContent"> Reset content </q-btn>
+            </div>
         </div>
         <q-separator vertical />
         <div class="col q-py-sm">
@@ -107,9 +114,7 @@ import "ace-builds/src-noconflict/theme-vibrant_ink";
 import AsmGenerationRequest from "src/models/AsmGenerationRequest";
 import AsmGenerationResponse from "src/models/AsmGenerationResponse";
 
-const csharpCode = ref(
-    localStorage.getItem("cached-code") ??
-        `using System;
+const defaultEditorContent = `using System;
 using System.Runtime.CompilerServices;
 
 // [MethodImpl(MethodImplOptions.NoInlining)]
@@ -120,9 +125,9 @@ for (int i = 0; i < 100; i++)
     // Insert method call here (do not remove Thread.Sleep)
 
     Thread.Sleep(10);
-}`
-);
+}`;
 
+const csharpCode = ref(localStorage.getItem("cached-code") ?? defaultEditorContent);
 const loading = ref(false);
 const asmCode = ref("");
 const errorsDialog = ref(false);
@@ -171,5 +176,9 @@ function onPgoChecked(pgoChecked: boolean) {
     if (pgoChecked) {
         useTieredCompilation.value = true;
     }
+}
+
+function resetEditorContent() {
+    csharpCode.value = defaultEditorContent;
 }
 </script>
