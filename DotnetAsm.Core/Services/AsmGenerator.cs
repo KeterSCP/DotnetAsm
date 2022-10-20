@@ -15,7 +15,7 @@ public class AsmGenerator : IAsmGenerator
     private readonly CodeWriterSettings _codeWriterSettings;
     private readonly StringBuilder _asmStringBuilder;
     private readonly StringBuilder _stdErrStringBuilder;
-    private readonly StringBuilder _asmSummaryStringBuilder;
+    private readonly List<string> _asmJittedMethodsInfoList;
 
     public AsmGenerator(ICodeWriter codeWriter, IOptions<CodeWriterSettings> codeWriterOptions)
     {
@@ -23,7 +23,7 @@ public class AsmGenerator : IAsmGenerator
         _codeWriterSettings = codeWriterOptions.Value;
         _asmStringBuilder = new StringBuilder();
         _stdErrStringBuilder = new StringBuilder();
-        _asmSummaryStringBuilder = new StringBuilder();
+        _asmJittedMethodsInfoList = new List<string>();
     }
 
     public async Task<AsmGenerationResponse> GenerateAsm(AsmGenerationRequest request, CancellationToken ct)
@@ -106,7 +106,7 @@ public class AsmGenerator : IAsmGenerator
         return new AsmGenerationResponse
         {
             Asm = _asmStringBuilder.ToString(),
-            AsmSummary = _asmSummaryStringBuilder.ToString(),
+            AsmSummary = _asmJittedMethodsInfoList,
             Errors = _stdErrStringBuilder.Length > 0 ? _stdErrStringBuilder.ToString() : null
         };
     }
@@ -123,7 +123,7 @@ public class AsmGenerator : IAsmGenerator
 
         if (args.Data.Contains("JIT compiled"))
         {
-            _asmSummaryStringBuilder.AppendLine(args.Data);
+            _asmJittedMethodsInfoList.Add(args.Data);
         }
         else
         {

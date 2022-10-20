@@ -1,4 +1,30 @@
 <template>
+    <q-dialog v-model="showAsmSummary" position="right" seamless full-height>
+        <q-card>
+            <q-card-section class="row items-center q-pb-none">
+                <div class="text-h6">ASM Summary</div>
+                <q-space />
+                <q-btn icon="keyboard_arrow_right" flat round dense v-close-popup />
+            </q-card-section>
+
+            <q-card-section class="row items-center no-wrap">
+                <q-scroll-area style="height: 790px; width: 700px">
+                    <q-list dark bordered separator>
+                        <q-item v-for="item in asmSummary" :key="item" clickable v-ripple @click="selectJitCompiledMethod(item)">
+                            <q-item-section :set="(itemSplit = item.replace(']', '').split('['))">
+                                <q-item-label>{{ itemSplit[0] }}</q-item-label>
+                                <q-item-label caption>{{ itemSplit[1] }}</q-item-label>
+                            </q-item-section>
+                        </q-item>
+                    </q-list>
+                </q-scroll-area>
+            </q-card-section>
+
+            <q-card-section>
+                <small>You can click on item to paste a method to "Method to compile" input.</small>
+            </q-card-section>
+        </q-card>
+    </q-dialog>
     <div class="row q-px-md">
         <div class="col q-py-sm">
             <div class="row justify-between items-center q-pr-sm">
@@ -63,6 +89,18 @@
                     </template>
                 </q-btn>
             </span>
+            <q-btn
+                :disable="!asmCode"
+                outline
+                label="Show ASM Summary"
+                color="primary"
+                class="q-ml-md"
+                @click="
+                    () => {
+                        showAsmSummary = !showAsmSummary;
+                    }
+                "
+            />
         </div>
     </div>
     <div class="row justify-between">
@@ -106,7 +144,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { Ref, ref } from "vue";
 import { VAceEditor } from "vue3-ace-editor";
 import "ace-builds/src-noconflict/mode-csharp";
 import "ace-builds/src-noconflict/mode-assembly_x86";
@@ -130,6 +168,7 @@ for (int i = 0; i < 100; i++)
 const csharpCode = ref(localStorage.getItem("cached-code") ?? defaultEditorContent);
 const loading = ref(false);
 const asmCode = ref("");
+const asmSummary = ref([]) as Ref<string[]>;
 const errorsDialog = ref(false);
 const errors = ref("");
 
@@ -137,6 +176,7 @@ const usePgo = ref(false);
 const useTieredCompilation = ref(true);
 const useReadyToRun = ref(true);
 const methodToCompile = ref("");
+const showAsmSummary = ref(false);
 
 async function generateAsmCode() {
     const request = new AsmGenerationRequest(
@@ -167,9 +207,15 @@ async function generateAsmCode() {
     }
 
     asmCode.value = generationResponse.asm;
+    asmSummary.value = generationResponse.asmSummary;
     loading.value = false;
 
     localStorage.setItem("cached-code", csharpCode.value);
+}
+
+function selectJitCompiledMethod(jittedMethodInfo: string) {
+    const methodName = jittedMethodInfo.substring(jittedMethodInfo.indexOf("d ") + 2, jittedMethodInfo.indexOf("("));
+    methodToCompile.value = methodName;
 }
 
 function onPgoChecked(pgoChecked: boolean) {
