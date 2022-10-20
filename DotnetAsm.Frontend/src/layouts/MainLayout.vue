@@ -95,11 +95,7 @@
                 label="Show ASM Summary"
                 color="primary"
                 class="q-ml-md"
-                @click="
-                    () => {
-                        showAsmSummary = !showAsmSummary;
-                    }
-                "
+                @click="showAsmSummary = !showAsmSummary"
             />
         </div>
     </div>
@@ -168,7 +164,7 @@ for (int i = 0; i < 100; i++)
 const csharpCode = ref(localStorage.getItem("cached-code") ?? defaultEditorContent);
 const loading = ref(false);
 const asmCode = ref("");
-const asmSummary = ref([]) as Ref<string[]>;
+const asmSummary = ref([] as string[]);
 const errorsDialog = ref(false);
 const errors = ref("");
 
