@@ -9,7 +9,7 @@
 
             <q-card-section class="row items-center no-wrap">
                 <q-scroll-area style="height: 790px; width: 700px">
-                    <q-list dark bordered separator>
+                    <q-list bordered separator>
                         <q-item v-for="item in asmSummary" :key="item" clickable v-ripple @click="selectJitCompiledMethod(item)">
                             <q-item-section :set="(itemSplit = item.replace(']', '').split('['))">
                                 <q-item-label>{{ itemSplit[0] }}</q-item-label>
@@ -104,8 +104,8 @@
             <v-ace-editor
                 v-model:value="csharpCode"
                 lang="csharp"
-                theme="vibrant_ink"
-                style="height: 90vh; resize: both"
+                :theme="darkTheme ? 'vibrant_ink' : 'chrome'"
+                style="height: 88vh; resize: both"
                 :printMargin="false"
             />
         </div>
@@ -116,8 +116,8 @@
                 v-model:value="asmCode"
                 readonly
                 lang="assembly_x86"
-                theme="vibrant_ink"
-                style="height: 90vh; resize: both"
+                :theme="darkTheme ? 'vibrant_ink' : 'chrome'"
+                style="height: 88vh; resize: both"
                 :printMargin="false"
             />
         </div>
@@ -137,16 +137,22 @@
             </q-card-actions>
         </q-card>
     </q-dialog>
+    <q-separator />
+    <div class="q-pa-xs float-right">
+        <q-checkbox v-model="darkTheme" label="Dark mode" />
+    </div>
 </template>
 
 <script setup lang="ts">
-import { Ref, ref } from "vue";
+import { ref, watch } from "vue";
 import { VAceEditor } from "vue3-ace-editor";
 import "ace-builds/src-noconflict/mode-csharp";
 import "ace-builds/src-noconflict/mode-assembly_x86";
 import "ace-builds/src-noconflict/theme-vibrant_ink";
+import "ace-builds/src-noconflict/theme-chrome";
 import AsmGenerationRequest from "src/models/AsmGenerationRequest";
 import AsmGenerationResponse from "src/models/AsmGenerationResponse";
+import { Dark } from "quasar";
 
 const defaultEditorContent = `using System;
 using System.Runtime.CompilerServices;
@@ -173,6 +179,19 @@ const useTieredCompilation = ref(true);
 const useReadyToRun = ref(true);
 const methodToCompile = ref("");
 const showAsmSummary = ref(false);
+
+const themeDarkStorageName = "theme-dark";
+const darkTheme = ref(Boolean(JSON.parse(localStorage.getItem(themeDarkStorageName) ?? "true")));
+updateTheme(darkTheme.value);
+
+watch(darkTheme, (currentValue: boolean) => {
+    updateTheme(currentValue);
+    localStorage.setItem(themeDarkStorageName, JSON.stringify(currentValue));
+});
+
+function updateTheme(darkTheme: boolean) {
+    Dark.set(darkTheme);
+}
 
 async function generateAsmCode() {
     const request = new AsmGenerationRequest(
@@ -212,6 +231,7 @@ async function generateAsmCode() {
 function selectJitCompiledMethod(jittedMethodInfo: string) {
     const methodName = jittedMethodInfo.substring(jittedMethodInfo.indexOf("d ") + 2, jittedMethodInfo.indexOf("("));
     methodToCompile.value = methodName;
+    showAsmSummary.value = false;
 }
 
 function onPgoChecked(pgoChecked: boolean) {
