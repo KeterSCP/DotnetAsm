@@ -2,7 +2,7 @@
 Ever had an argue with colleague about performance of a certain method? Then you have probably heard about https://sharplab.io/. While being excellent at compiling methods without tiered JIT, it has some drawbacks:
 - PGO mode is not supported
 - No possibility to use tiered compilation
-- Method calls are represented as raw hex address instead of an actual mathod name
+- Method calls are represented as raw hex address instead of an actual method name
 - It requires internet connection (yeah I know, in the current year you have internet almost everywhere)
 
 There is a great extension for Visual Studio called [Disasmo](https://github.com/EgorBo/Disasmo) which inspired me for making this web-based extension that does not require Visual Studio.
