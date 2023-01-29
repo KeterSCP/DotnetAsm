@@ -1,4 +1,5 @@
-﻿using DotnetAsm.Core.ConfigOptions;
+﻿using System.Diagnostics;
+using DotnetAsm.Core.ConfigOptions;
 using DotnetAsm.Core.Interfaces;
 
 using Microsoft.Extensions.Options;
@@ -16,23 +17,6 @@ public class CodeWriter : ICodeWriter
 
     public async Task WriteCodeAsync(string code)
     {
-        File.Delete(_codeWriterSettings.WritePath);
-        
-        await using var fs = File.OpenWrite(_codeWriterSettings.WritePath);
-        await using var fileWriter = new StreamWriter(fs);
-
-        var codeStrMemory = code.AsMemory();
-
-        var eolIdx = codeStrMemory.Span.IndexOf("\r\n");
-        while (eolIdx != -1)
-        {
-            await fileWriter.WriteLineAsync(codeStrMemory[..eolIdx]);
-            codeStrMemory = codeStrMemory[(eolIdx + 2)..];
-
-            eolIdx = codeStrMemory.Span.IndexOf("\r\n");
-        }
-
-        await fileWriter.WriteLineAsync(codeStrMemory);
-        await fileWriter.FlushAsync();
+        await File.WriteAllTextAsync(_codeWriterSettings.WritePath, code);
     }
 }
