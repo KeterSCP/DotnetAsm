@@ -19,22 +19,20 @@ public class CodeWriter : ICodeWriter
         File.Delete(_codeWriterSettings.WritePath);
         
         await using var fs = File.OpenWrite(_codeWriterSettings.WritePath);
-        await using var fileWriter = new StreamWriter(fs)
-        {
-            AutoFlush = true
-        };
-        
+        await using var fileWriter = new StreamWriter(fs);
+
         var codeStrMemory = code.AsMemory();
 
-        var eolIdx = codeStrMemory.Span.IndexOf("\r\n"); 
+        var eolIdx = codeStrMemory.Span.IndexOf("\r\n");
         while (eolIdx != -1)
         {
             await fileWriter.WriteLineAsync(codeStrMemory[..eolIdx]);
-            codeStrMemory = codeStrMemory[(eolIdx + 2)..]; 
-            
+            codeStrMemory = codeStrMemory[(eolIdx + 2)..];
+
             eolIdx = codeStrMemory.Span.IndexOf("\r\n");
         }
-    
+
         await fileWriter.WriteLineAsync(codeStrMemory);
+        await fileWriter.FlushAsync();
     }
 }

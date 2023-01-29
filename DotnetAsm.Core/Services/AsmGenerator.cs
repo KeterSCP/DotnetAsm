@@ -17,6 +17,8 @@ public class AsmGenerator : IAsmGenerator
     private readonly StringBuilder _stdErrStringBuilder;
     private readonly List<string> _asmJittedMethodsInfoList;
 
+    private static string _shell =  OperatingSystem.IsLinux() ? "bash" : "cmd.exe";
+
     public AsmGenerator(ICodeWriter codeWriter, IOptions<CodeWriterSettings> codeWriterOptions)
     {
         _codeWriter = codeWriter;
@@ -47,9 +49,9 @@ public class AsmGenerator : IAsmGenerator
                 RedirectStandardOutput = true
             }
         };
-        
+
         dotnetBuildProcess.Start();
-        
+
         await dotnetBuildProcess.WaitForExitAsync(ct);
             var errors = await dotnetBuildProcess.StandardOutput.ReadToEndAsync(ct);
         if (dotnetBuildProcess.ExitCode != 0)
@@ -62,18 +64,17 @@ public class AsmGenerator : IAsmGenerator
         }
 
         var dllPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetDirectoryName(_codeWriterSettings.WritePath)!, "bin", "Release", "net7.0", "DotnetAsm.Sandbox.dll");
-        
-        var shell = OperatingSystem.IsLinux() ? "bash" : "cmd.exe";
+
         var shellArgs = OperatingSystem.IsLinux() ? $"dotnet {dllPath}" : $"/c dotnet {dllPath}";
 
         using var shellProcess = new Process
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = shell,
+                FileName = _shell,
                 EnvironmentVariables =
                 {
-                    ["DOTNET_JitDisasm"] = request.MethodName,
+                    ["DOTNET_JitDisasm"] = $"*{request.MethodName}*",
                     ["DOTNET_JitDisasmSummary"] = "1",
                     ["DOTNET_ReadyToRun"] = request.UseReadyToRun ? "1" : "0",
                     ["DOTNET_TieredPGO"] = request.UsePgo ? "1" : "0",
