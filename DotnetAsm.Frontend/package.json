@@ -17,7 +17,7 @@
         "quasar": "^2.6.0",
         "vue": "^3.0.0",
         "vue-router": "^4.0.0",
-        "vue3-ace-editor": "^2.2.2"
+        "ace-builds": "1.15.0"
     },
     "devDependencies": {
         "@quasar/app-vite": "^1.0.0",
