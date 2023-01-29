@@ -11,9 +11,9 @@
                 <q-scroll-area style="height: 790px; width: 700px">
                     <q-list bordered separator>
                         <q-item v-for="item in asmSummary" :key="item" clickable v-ripple @click="selectJitCompiledMethod(item)">
-                            <q-item-section :set="(itemSplit = item.replace(']', '').split('['))">
-                                <q-item-label>{{ itemSplit[0] }}</q-item-label>
-                                <q-item-label caption>{{ itemSplit[1] }}</q-item-label>
+                            <q-item-section>
+                                <q-item-label>{{ getAsmSummaryLabel(item) }}</q-item-label>
+                                <q-item-label caption>{{ getAsmSummaryCaption(item) }}</q-item-label>
                             </q-item-section>
                         </q-item>
                     </q-list>
@@ -28,27 +28,7 @@
     <div class="row q-px-md">
         <div class="col q-py-sm">
             <div class="row justify-between items-center q-pr-sm">
-                <q-input outlined dense v-model="methodToCompile" label="Method to compile" style="max-width: 400px">
-                    <template v-slot:append>
-                        <q-icon name="help">
-                            <q-tooltip class="text-body2">
-                                You can use <strong>*</strong> as a wildcard character.
-                                <br />
-                                <br />
-                                Examples:
-                                <ul>
-                                    <li>
-                                        TestMethod* will search for any method name that <strong>starts with</strong> TestMethod
-                                    </li>
-                                    <li>
-                                        *TestMethod will search for any method name that <strong>ends with</strong> TestMethod
-                                    </li>
-                                    <li>*TestMethod* will search for every method name <strong>containing</strong> TestMethod</li>
-                                </ul>
-                            </q-tooltip>
-                        </q-icon>
-                    </template>
-                </q-input>
+                <q-input outlined dense v-model="methodToCompile" label="Method to compile" style="max-width: 400px" />
                 <q-btn outline color="primary" style="height: 28px" @click="resetEditorContent"> Reset content </q-btn>
             </div>
         </div>
@@ -248,5 +228,16 @@ function onPgoChecked(pgoChecked: boolean) {
 
 function resetEditorContent() {
     csharpCode.value = defaultEditorContent;
+}
+
+function getAsmSummaryLabel(methodCompilationSummary: string): string {
+    const firstBracketIndex = methodCompilationSummary.indexOf("[");
+    return methodCompilationSummary.slice(0, firstBracketIndex);
+}
+
+function getAsmSummaryCaption(methodCompilationSummary: string): string {
+    const firstBracketIndex = methodCompilationSummary.indexOf("[");
+
+    return methodCompilationSummary.slice(firstBracketIndex); //.replaceAll(/[\[\]]/g, "");
 }
 </script>
