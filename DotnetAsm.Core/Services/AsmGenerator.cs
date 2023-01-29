@@ -16,13 +16,16 @@ public class AsmGenerator : IAsmGenerator
     private readonly StringBuilder _asmStringBuilder;
     private readonly StringBuilder _stdErrStringBuilder;
     private readonly List<string> _asmJittedMethodsInfoList;
+    private readonly string _shellArgs;
 
-    private static string _shell =  OperatingSystem.IsLinux() ? "bash" : "cmd.exe";
+    private static readonly string _shell =  OperatingSystem.IsLinux() ? "bash" : "cmd.exe";
 
     public AsmGenerator(ICodeWriter codeWriter, IOptions<CodeWriterSettings> codeWriterOptions)
     {
         _codeWriter = codeWriter;
         _codeWriterSettings = codeWriterOptions.Value;
+        var builtDllPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetDirectoryName(_codeWriterSettings.WritePath)!, "bin", "Release", "net7.0", "DotnetAsm.Sandbox.dll");
+        _shellArgs = OperatingSystem.IsLinux() ? $"dotnet {builtDllPath}" : $"/c dotnet {builtDllPath}";
         _asmStringBuilder = new StringBuilder();
         _stdErrStringBuilder = new StringBuilder();
         _asmJittedMethodsInfoList = new List<string>();
@@ -37,11 +40,10 @@ public class AsmGenerator : IAsmGenerator
             StartInfo = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = $"build {Path.GetDirectoryName(_codeWriterSettings.WritePath)} -c Release --no-self-contained",
+                Arguments = $"build {Path.GetDirectoryName(_codeWriterSettings.WritePath)} -c Release --no-self-contained --no-restore --nologo --no-dependencies",
                 EnvironmentVariables =
                 {
                     ["SuppressNETCoreSdkPreviewMessage"] = "true",
-                    ["DOTNET_NOLOGO"] = "1",
                     ["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1",
                     ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
                 },
@@ -53,19 +55,16 @@ public class AsmGenerator : IAsmGenerator
         dotnetBuildProcess.Start();
 
         await dotnetBuildProcess.WaitForExitAsync(ct);
-            var errors = await dotnetBuildProcess.StandardOutput.ReadToEndAsync(ct);
+
         if (dotnetBuildProcess.ExitCode != 0)
         {
+            var stdOut = await dotnetBuildProcess.StandardOutput.ReadToEndAsync(ct);
             return new AsmGenerationResponse
             {
                 Asm = "",
-                Errors = errors
+                Errors = stdOut
             };
         }
-
-        var dllPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetDirectoryName(_codeWriterSettings.WritePath)!, "bin", "Release", "net7.0", "DotnetAsm.Sandbox.dll");
-
-        var shellArgs = OperatingSystem.IsLinux() ? $"dotnet {dllPath}" : $"/c dotnet {dllPath}";
 
         using var shellProcess = new Process
         {
@@ -80,7 +79,7 @@ public class AsmGenerator : IAsmGenerator
                     ["DOTNET_TieredPGO"] = request.UsePgo ? "1" : "0",
                     ["DOTNET_TieredCompilation"] = request.UsePgo || request.UseTieredCompilation ? "1" : "0"
                 },
-                Arguments = shellArgs,
+                Arguments = _shellArgs,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
@@ -136,8 +135,8 @@ public class AsmGenerator : IAsmGenerator
         }
     }
 
-    private bool IsAsmSectionEnd(string line)
+    private static bool IsAsmSectionEnd(ReadOnlySpan<char> line)
     {
-        return line.AsSpan().StartsWith("; Total bytes of code");
+        return line.StartsWith("; Total bytes of code");
     }
 }
