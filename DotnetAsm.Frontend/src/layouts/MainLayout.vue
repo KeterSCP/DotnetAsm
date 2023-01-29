@@ -107,6 +107,11 @@
                 :theme="darkTheme ? 'vibrant_ink' : 'chrome'"
                 style="height: 88vh; resize: both"
                 :printMargin="false"
+                :options="{
+                    enableBasicAutocompletion: true,
+                    enableSnippets: true,
+                    enableLiveAutocompletion: true,
+                }"
             />
         </div>
         <q-separator vertical />
@@ -145,14 +150,15 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { VAceEditor } from "vue3-ace-editor";
+import { VAceEditor } from "src/components/VAceEditor";
+import AsmGenerationRequest from "src/models/AsmGenerationRequest";
+import AsmGenerationResponse from "src/models/AsmGenerationResponse";
+import { Dark } from "quasar";
+
 import "ace-builds/src-noconflict/mode-csharp";
 import "ace-builds/src-noconflict/mode-assembly_x86";
 import "ace-builds/src-noconflict/theme-vibrant_ink";
 import "ace-builds/src-noconflict/theme-chrome";
-import AsmGenerationRequest from "src/models/AsmGenerationRequest";
-import AsmGenerationResponse from "src/models/AsmGenerationResponse";
-import { Dark } from "quasar";
 
 const defaultEditorContent = `using System;
 using System.Runtime.CompilerServices;
