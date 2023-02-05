@@ -40,7 +40,7 @@ public class AsmGenerator : IAsmGenerator
             StartInfo = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = $"build {Path.GetDirectoryName(_codeWriterSettings.WritePath)} -c Release --no-self-contained --no-restore --nologo --no-dependencies",
+                Arguments = $"build {Path.GetDirectoryName(_codeWriterSettings.WritePath)} -c Release --no-self-contained --nologo --no-dependencies",
                 EnvironmentVariables =
                 {
                     ["SuppressNETCoreSdkPreviewMessage"] = "true",
