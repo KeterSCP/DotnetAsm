@@ -4,11 +4,10 @@
     <div class="row q-px-md">
         <div class="col q-py-sm">
             <div class="row justify-between items-center q-pr-sm">
-                <q-input outlined dense v-model="methodToCompile" label="Method to compile" style="max-width: 400px" />
+                <q-input outlined dense v-model="methodToCompile" label="Method to compile" style="max-width: 400px" clearable />
                 <q-btn outline color="primary" style="height: 28px" @click="resetEditorContent"> Reset content </q-btn>
             </div>
         </div>
-        <q-separator vertical />
         <div class="col q-py-sm">
             <q-checkbox v-model="useTieredCompilation" :disable="usePgo" label="Tiered JIT">
                 <q-tooltip class="text-body2">
@@ -56,31 +55,29 @@
             <q-btn outline label="Open diff-tool" color="primary" class="q-ml-md" @click="showDiffTool = !showDiffTool" />
         </div>
     </div>
-    <div class="row justify-between">
+    <div class="row justify-between q-px-sm">
         <div class="col">
-            <v-ace-editor
-                v-model:value="csharpCode"
-                lang="csharp"
-                :theme="darkTheme ? 'vibrant_ink' : 'chrome'"
-                style="height: 88vh; resize: both"
-                :printMargin="false"
+            <VMonacoEditor
+                v-model="csharpCode"
+                id="csharp-editor"
                 :options="{
-                    enableBasicAutocompletion: true,
-                    enableSnippets: true,
-                    enableLiveAutocompletion: true,
+                    language: 'csharp',
                 }"
+                dark-theme-name="vs-dark"
+                light-theme-name="vs"
+                style="height: 88vh; resize: both"
             />
         </div>
-        <q-separator vertical />
-
         <div class="col">
-            <v-ace-editor
-                v-model:value="asmCode"
-                readonly
-                lang="assembly_x86"
-                :theme="darkTheme ? 'vibrant_ink' : 'chrome'"
+            <VMonacoEditor
+                v-model="asmCode"
+                id="asm-editor"
+                :options="{
+                    language: ryujitXarchAsm,
+                }"
+                :dark-theme-name="ryujitXarchThemeDark"
+                :light-theme-name="ryujitXarchTheme"
                 style="height: 88vh; resize: both"
-                :printMargin="false"
             />
         </div>
     </div>
@@ -99,7 +96,6 @@
             </q-card-actions>
         </q-card>
     </q-dialog>
-    <q-separator />
     <div class="q-pa-xs float-right">
         <q-checkbox v-model="darkTheme" label="Dark mode" />
     </div>
@@ -107,17 +103,17 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { VAceEditor } from "src/components/VAceEditor";
 import AsmSummaryDialog from "src/components/AsmSummaryDialog.vue";
 import DiffToolDialog from "src/components/DiffToolDialog.vue";
+import VMonacoEditor from "src/components/VMonacoEditor.vue";
 import AsmGenerationRequest from "src/models/AsmGenerationRequest";
 import AsmGenerationResponse from "src/models/AsmGenerationResponse";
 import darkTheme from "src/theme/dark-theme";
-
-import "ace-builds/src-noconflict/mode-csharp";
-import "ace-builds/src-noconflict/mode-assembly_x86";
-import "ace-builds/src-noconflict/theme-vibrant_ink";
-import "ace-builds/src-noconflict/theme-chrome";
+import {
+    languageName as ryujitXarchAsm,
+    themeName as ryujitXarchTheme,
+    themeNameDark as ryujitXarchThemeDark,
+} from "../monaco/ryujit-xarch-asm-lang";
 
 const defaultEditorContent = `using System;
 using System.Runtime.CompilerServices;
