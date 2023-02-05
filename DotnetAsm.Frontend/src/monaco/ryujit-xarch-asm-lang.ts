@@ -40,7 +40,7 @@ monaco.editor.defineTheme(themeName, {
     rules: [
         {
             token: "comment-xarch-asm",
-            foreground: "#9933A8",
+            foreground: "#11AA22",
         },
         {
             token: "keyword-xarch-asm",
@@ -83,7 +83,7 @@ monaco.editor.defineTheme(themeNameDark, {
     rules: [
         {
             token: "comment-xarch-asm",
-            foreground: "#9933A8",
+            foreground: "#11AA22",
         },
         {
             token: "keyword-xarch-asm",
