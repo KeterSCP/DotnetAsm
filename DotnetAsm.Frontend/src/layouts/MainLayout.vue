@@ -74,6 +74,7 @@
                 id="asm-editor"
                 :options="{
                     language: ryujitXarchAsm,
+                    readOnly: true,
                 }"
                 :dark-theme-name="ryujitXarchThemeDark"
                 :light-theme-name="ryujitXarchTheme"
