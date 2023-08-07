@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 using DotnetAsm.Core.ConfigOptions;
@@ -9,38 +10,32 @@ using Microsoft.Extensions.Options;
 
 namespace DotnetAsm.Core.Services;
 
-public class AsmGenerator : IAsmGenerator
+public class AsmGenerator(ICodeWriter codeWriter, IOptions<CodeWriterSettings> codeWriterOptions) : IAsmGenerator
 {
-    private readonly ICodeWriter _codeWriter;
-    private readonly CodeWriterSettings _codeWriterSettings;
-    private readonly StringBuilder _asmStringBuilder;
-    private readonly StringBuilder _stdErrStringBuilder;
-    private readonly List<string> _asmJittedMethodsInfoList;
-    private readonly string _shellArgs;
+    private readonly CodeWriterSettings _codeWriterSettings = codeWriterOptions.Value;
+    private readonly StringBuilder _asmStringBuilder = new();
+    private readonly StringBuilder _stdErrStringBuilder = new();
+    private readonly List<string> _asmJittedMethodsInfoList = new();
 
     private static readonly string _shell =  OperatingSystem.IsLinux() ? "bash" : "cmd.exe";
 
-    public AsmGenerator(ICodeWriter codeWriter, IOptions<CodeWriterSettings> codeWriterOptions)
-    {
-        _codeWriter = codeWriter;
-        _codeWriterSettings = codeWriterOptions.Value;
-        var builtDllPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetDirectoryName(_codeWriterSettings.WritePath)!, "bin", "Release", "net7.0", "DotnetAsm.Sandbox.dll");
-        _shellArgs = OperatingSystem.IsLinux() ? $"dotnet {builtDllPath}" : $"/c dotnet {builtDllPath}";
-        _asmStringBuilder = new StringBuilder();
-        _stdErrStringBuilder = new StringBuilder();
-        _asmJittedMethodsInfoList = new List<string>();
-    }
-
     public async Task<AsmGenerationResponse> GenerateAsm(AsmGenerationRequest request, CancellationToken ct)
     {
-        await _codeWriter.WriteCodeAsync(request.CsharpCode);
+        var tfm = request.TargetFramework switch
+        {
+            TargetFramework.Net70 => "net7.0",
+            TargetFramework.Net80 => "net8.0",
+            _ => throw new SwitchExpressionException(request.TargetFramework)
+        };
+
+        await codeWriter.WriteCodeAsync(request.CsharpCode);
 
         using var dotnetBuildProcess = new Process
         {
             StartInfo = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = $"build {Path.GetDirectoryName(_codeWriterSettings.WritePath)} -c Release --no-self-contained --nologo --no-dependencies",
+                Arguments = $"build {Path.GetDirectoryName(_codeWriterSettings.WritePath)} -c Release --no-self-contained --nologo --no-dependencies -f {tfm}",
                 EnvironmentVariables =
                 {
                     ["SuppressNETCoreSdkPreviewMessage"] = "true",
@@ -66,6 +61,9 @@ public class AsmGenerator : IAsmGenerator
             };
         }
 
+        var builtDllPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetDirectoryName(_codeWriterSettings.WritePath)!, "bin", "Release", tfm, "DotnetAsm.Sandbox.dll");
+        var shellArgs = OperatingSystem.IsLinux() ? $"dotnet {builtDllPath}" : $"/c dotnet {builtDllPath}";
+
         using var shellProcess = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -73,13 +71,13 @@ public class AsmGenerator : IAsmGenerator
                 FileName = _shell,
                 EnvironmentVariables =
                 {
-                    ["DOTNET_JitDisasm"] = $"*{request.MethodName}*",
+                    ["DOTNET_JitDisasm"] = $"{request.MethodName}",
                     ["DOTNET_JitDisasmSummary"] = "1",
                     ["DOTNET_ReadyToRun"] = request.UseReadyToRun ? "1" : "0",
                     ["DOTNET_TieredPGO"] = request.UsePgo ? "1" : "0",
                     ["DOTNET_TieredCompilation"] = request.UsePgo || request.UseTieredCompilation ? "1" : "0"
                 },
-                Arguments = _shellArgs,
+                Arguments = shellArgs,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true

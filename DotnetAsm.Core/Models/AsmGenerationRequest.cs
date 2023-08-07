@@ -7,4 +7,5 @@ public class AsmGenerationRequest
     public required bool UsePgo { get; init; }
     public required bool UseTieredCompilation { get; init; }
     public required bool UseReadyToRun { get; init; }
+    public TargetFramework TargetFramework { get; init; }
 }

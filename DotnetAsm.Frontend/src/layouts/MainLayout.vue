@@ -28,6 +28,16 @@
                     running in PGO mode (libraries code will be recompiled from Tier-0 with instrumentation)
                 </q-tooltip>
             </q-checkbox>
+
+            <q-select
+                v-model="selectedTargetFramework"
+                :options="targetFrameworks"
+                label="Target framework"
+                outlined
+                dense
+                style="width: 200px; display: inline-flex; padding-left: 10px"
+            />
+
             <span>
                 <q-tooltip v-if="!methodToCompile" class="text-body2"> Fill the "Method to compile" field first </q-tooltip>
                 <q-btn
@@ -106,6 +116,7 @@
 import { ref } from "vue";
 import AsmSummaryDialog from "src/components/AsmSummaryDialog.vue";
 import DiffToolDialog from "src/components/DiffToolDialog.vue";
+import TargetFramework from "src/models/TargetFramework";
 import VMonacoEditor from "src/components/VMonacoEditor.vue";
 import AsmGenerationRequest from "src/models/AsmGenerationRequest";
 import AsmGenerationResponse from "src/models/AsmGenerationResponse";
@@ -142,6 +153,11 @@ const useReadyToRun = ref(true);
 const methodToCompile = ref("");
 const showAsmSummary = ref(false);
 const showDiffTool = ref(false);
+const targetFrameworks = [
+    { label: ".NET 7", value: "net70" },
+    { label: ".NET 8", value: "net80" },
+];
+const selectedTargetFramework = ref({ label: ".NET 8", value: "net80" });
 
 async function generateAsmCode() {
     const request = new AsmGenerationRequest(
@@ -150,7 +166,8 @@ async function generateAsmCode() {
         false,
         usePgo.value,
         useTieredCompilation.value,
-        useReadyToRun.value
+        useReadyToRun.value,
+        selectedTargetFramework.value.value as TargetFramework
     );
 
     loading.value = true;
