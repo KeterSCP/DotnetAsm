@@ -1,5 +1,8 @@
-﻿namespace DotnetAsm.Core.Models;
+﻿using JetBrains.Annotations;
 
+namespace DotnetAsm.Core.Models;
+
+[PublicAPI]
 public class AsmGenerationRequest
 {
     public required string CsharpCode { get; init; }

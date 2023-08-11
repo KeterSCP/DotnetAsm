@@ -12,11 +12,11 @@ public static class Program
             .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
             .Enrich.FromLogContext()
             .WriteTo.Console()
-        #if DEBUG
+#if DEBUG
             // .Filter.ByExcluding("RequestPath not like '/api/%'")
-        #else
+#else
             .Filter.ByExcluding("RequestPath like '/index.html'")
-        #endif
+#endif
             .CreateLogger();
 
         try
@@ -34,11 +34,10 @@ public static class Program
         }
     }
 
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
+    public static IHostBuilder CreateHostBuilder(string[] args)
+    {
+        return Host.CreateDefaultBuilder(args)
             .UseSerilog()
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Startup>();
-            });
+            .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+    }
 }

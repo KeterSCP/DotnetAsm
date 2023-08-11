@@ -6,5 +6,5 @@ namespace DotnetAsm.Core.Models;
 public enum TargetFramework
 {
     Net70,
-    Net80,
+    Net80
 }

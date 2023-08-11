@@ -9,23 +9,23 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="7.0.9" />
-        <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
-        <PackageReference Include="Serilog.Expressions" Version="3.4.1" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+        <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="7.0.10"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="7.0.0"/>
+        <PackageReference Include="Serilog.Expressions" Version="3.4.1"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\DotnetAsm.Core\DotnetAsm.Core.csproj" />
+        <ProjectReference Include="..\DotnetAsm.Core\DotnetAsm.Core.csproj"/>
     </ItemGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
         <DebugSymbols>False</DebugSymbols>
         <DebugType>None</DebugType>
     </PropertyGroup>
-    
+
     <ItemGroup Condition="'$(Configuration)'=='Release'">
-        <Content Remove="appsettings.Development.json" />
+        <Content Remove="appsettings.Development.json"/>
         <ContentWithTargetPath Include="..\DotnetAsm.Sandbox\Program.cs">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <TargetPath>DotnetAsm.Sandbox\Program.cs</TargetPath>

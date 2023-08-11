@@ -6,17 +6,8 @@ using Serilog;
 
 namespace DotnetAsm.Api;
 
-public class Startup
+public class Startup(IConfiguration configuration)
 {
-    private readonly IWebHostEnvironment _env;
-    private readonly IConfiguration _configuration;
-
-    public Startup(IConfiguration configuration, IWebHostEnvironment env)
-    {
-        _env = env;
-        _configuration = configuration;
-    }
-
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddControllers();
@@ -24,31 +15,27 @@ public class Startup
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
 
-        services.AddSpaStaticFiles(options =>
-        {
-            options.RootPath = "dist";
-        });
+        services.AddSpaStaticFiles(options => { options.RootPath = "dist"; });
 
         services.AddOptions<CodeWriterSettings>()
-            .Bind(_configuration.GetSection(CodeWriterSettings.SectionName))
+            .Bind(configuration.GetSection(CodeWriterSettings.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddScoped<ICodeWriter, CodeWriter>();
-        services.AddScoped<IAsmGenerator, AsmGenerator>();
+        services.AddScoped<IAsmGenerator, CliBasedAsmGenerator>();
         services.AddSingleton(Log.Logger);
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        if (_env.IsDevelopment())
+        if (env.IsDevelopment())
         {
             app.UseSwagger();
             app.UseSwaggerUI();
         }
 
         app.UseRouting();
-        app.UseAuthorization();
 
         app.UseSpaStaticFiles();
 
@@ -59,9 +46,9 @@ public class Startup
         app.UseSpa(spaBuilder =>
         {
             spaBuilder.Options.SourcePath = "../DotnetAsm.Frontend";
-            if (_env.IsDevelopment())
+            if (env.IsDevelopment())
             {
-                spaBuilder.UseProxyToSpaDevelopmentServer(_configuration.GetValue<string>("FrontendUrl")!);
+                spaBuilder.UseProxyToSpaDevelopmentServer(configuration.GetValue<string>("FrontendUrl")!);
             }
         });
     }

@@ -22,7 +22,7 @@ monaco.languages.setMonarchTokensProvider(languageName, {
                 "register-xarch-asm",
             ],
             [
-                /\b(?:d[bwdqtoy]|res[bwdqto]|equ|times|align|alignb|sectalign|section|ptr|byte|word|dword|gword|qword|xmmword|short|incbin)\b/,
+                /\b(?:d[bwdqtoy]|res[bwdqto]|equ|times|align|alignb|sectalign|section|ptr|byte|word|bword|dword|gword|qword|xmmword|short|incbin)\b/,
                 "directive-xarch-asm",
             ],
             [/\bG_M\d+_IG\d+:?\b/, "GM-label-xarch-asm"],
