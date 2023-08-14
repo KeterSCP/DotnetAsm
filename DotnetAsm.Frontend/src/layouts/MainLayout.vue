@@ -72,6 +72,7 @@
                 id="csharp-editor"
                 :options="{
                     language: 'csharp',
+                    automaticLayout: true,
                 }"
                 dark-theme-name="vs-dark"
                 light-theme-name="vs"
@@ -85,6 +86,7 @@
                 :options="{
                     language: ryujitXarchAsm,
                     readOnly: true,
+                    automaticLayout: true,
                 }"
                 :dark-theme-name="ryujitXarchThemeDark"
                 :light-theme-name="ryujitXarchTheme"
@@ -128,17 +130,24 @@ import {
 } from "../monaco/ryujit-xarch-asm-lang";
 
 const defaultEditorContent = `using System;
+using System.Threading;
 using System.Runtime.CompilerServices;
 
 // [MethodImpl(MethodImplOptions.NoInlining)]
 
-
-for (int i = 0; i < 100; i++)
+class Program
 {
-    // Insert method call here (do not remove Thread.Sleep)
+    static void Main()
+    {
+        for (int i = 0; i < 100; i++)
+        {
+            // Insert method call here (do not remove Thread.Sleep)
 
-    Thread.Sleep(10);
-}`;
+            Thread.Sleep(10);
+        }
+    }
+}
+`;
 
 const csharpCode = ref(localStorage.getItem("cached-code") ?? defaultEditorContent);
 const loading = ref(false);

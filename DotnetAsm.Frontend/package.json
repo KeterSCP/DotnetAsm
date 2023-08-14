@@ -14,7 +14,7 @@
     },
     "dependencies": {
         "@quasar/extras": "^1.0.0",
-        "monaco-editor": "^0.34.1",
+        "monaco-editor": "^0.41.0",
         "quasar": "^2.6.0",
         "vue": "^3.0.0",
         "vue-router": "^4.0.0"

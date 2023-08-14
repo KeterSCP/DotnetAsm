@@ -8,6 +8,7 @@ import { onMounted, PropType, toRefs, onBeforeUnmount, watch, ref } from "vue";
 import darkTheme from "src/theme/dark-theme";
 
 import IStandaloneEditorConstructionOptions = editor.IStandaloneEditorConstructionOptions;
+import registerCSharpLanguageProvider from "src/monaco/c-sharp-language.provider";
 
 const props = defineProps({
     modelValue: {
@@ -36,27 +37,27 @@ const emits = defineEmits(["update:modelValue"]);
 const { options, modelValue, id, darkThemeName, lightThemeName } = toRefs(props);
 
 let internalEditor: editor.IStandaloneCodeEditor | null = null;
-let textModel: editor.ITextModel | null = null;
 
 const contentBackup = ref("");
 const isSettingContent = ref(false);
 
 onMounted(() => {
-    textModel = editor.createModel(modelValue.value, options.value.language);
-    textModel.onDidChangeContent(() => {
-        const val = textModel?.getValue();
-        contentBackup.value = val ?? "";
-        emits("update:modelValue", val);
-    });
+    if (options.value.language === "csharp") {
+        registerCSharpLanguageProvider();
+    }
 
-    contentBackup.value = textModel.getValue();
+    contentBackup.value = internalEditor?.getValue() ?? "";
 
     options.value.theme = darkTheme.value ? darkThemeName.value : lightThemeName.value;
+    options.value.value = modelValue.value;
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     internalEditor = editor.create(document.getElementById(id.value)!, options.value);
-
-    internalEditor.setModel(textModel);
+    internalEditor.onDidChangeModelContent(() => {
+        const val = internalEditor?.getValue();
+        contentBackup.value = val ?? "";
+        emits("update:modelValue", val);
+    });
 });
 
 onBeforeUnmount(() => {
@@ -68,7 +69,7 @@ watch(modelValue, (newValue) => {
     if (contentBackup.value !== newValue) {
         try {
             isSettingContent.value = true;
-            textModel?.setValue(newValue);
+            internalEditor?.setValue(newValue);
         } finally {
             isSettingContent.value = false;
         }
