@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DotnetAsm.Api.RoslynMonaco;
 
-using MonacoRoslynCompletionProvider;
+using Microsoft.AspNetCore.Mvc;
+
 using MonacoRoslynCompletionProvider.Api;
 
 namespace DotnetAsm.Api.Controllers;
@@ -11,28 +12,28 @@ public class RoslynCompletionController : ControllerBase
     [HttpPost("/api/completion/complete")]
     public async Task<TabCompletionResult[]> Complete([FromBody] TabCompletionRequest completionText)
     {
-        var tabCompletionResults = await CompletitionRequestHandler.Handle(completionText);
+        var tabCompletionResults = await RoslynMonacoRequestHandler.Handle(completionText);
         return tabCompletionResults;
     }
 
     [HttpPost("/api/completion/signature")]
     public async Task<SignatureHelpResult> Signature([FromBody] SignatureHelpRequest signatureHelpRequest)
     {
-        var signatureHelpResult = await CompletitionRequestHandler.Handle(signatureHelpRequest);
+        var signatureHelpResult = await RoslynMonacoRequestHandler.Handle(signatureHelpRequest);
         return signatureHelpResult;
     }
 
     [HttpPost("/api/completion/hover")]
     public async Task<HoverInfoResult> Hover([FromBody] HoverInfoRequest hoverInfoRequest)
     {
-        var hoverInfoResult = await CompletitionRequestHandler.Handle(hoverInfoRequest);
+        var hoverInfoResult = await RoslynMonacoRequestHandler.Handle(hoverInfoRequest);
         return hoverInfoResult;
     }
 
     [HttpPost("/api/completion/code-check")]
     public async Task<CodeCheckResult[]> CodeCheck([FromBody] CodeCheckRequest codeCheckRequest)
     {
-        var codeCheckResults = await CompletitionRequestHandler.Handle(codeCheckRequest);
+        var codeCheckResults = await RoslynMonacoRequestHandler.Handle(codeCheckRequest);
         return codeCheckResults;
     }
 }
