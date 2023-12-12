@@ -135,17 +135,11 @@ using System.Runtime.CompilerServices;
 
 // [MethodImpl(MethodImplOptions.NoInlining)]
 
-class Program
+for (int i = 0; i < 100; i++)
 {
-    static void Main()
-    {
-        for (int i = 0; i < 100; i++)
-        {
-            // Insert method call here (do not remove Thread.Sleep)
+    // Insert method call here (do not remove Thread.Sleep)
 
-            Thread.Sleep(10);
-        }
-    }
+    Thread.Sleep(10);
 }
 `;
 
@@ -156,7 +150,7 @@ const asmSummary = ref([] as string[]);
 const errorsDialog = ref(false);
 const errors = ref("");
 
-const usePgo = ref(false);
+const usePgo = ref(true);
 const useTieredCompilation = ref(true);
 const useReadyToRun = ref(true);
 const methodToCompile = ref("");

@@ -6,8 +6,15 @@ using Serilog;
 
 namespace DotnetAsm.Api;
 
-public class Startup(IConfiguration configuration)
+public class Startup
 {
+    private readonly IConfiguration _configuration;
+
+    public Startup(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddControllers();
@@ -18,7 +25,7 @@ public class Startup(IConfiguration configuration)
         services.AddSpaStaticFiles(options => { options.RootPath = "dist"; });
 
         services.AddOptions<CodeWriterSettings>()
-            .Bind(configuration.GetSection(CodeWriterSettings.SectionName))
+            .Bind(_configuration.GetSection(CodeWriterSettings.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
@@ -48,7 +55,7 @@ public class Startup(IConfiguration configuration)
             spaBuilder.Options.SourcePath = "../DotnetAsm.Frontend";
             if (env.IsDevelopment())
             {
-                spaBuilder.UseProxyToSpaDevelopmentServer(configuration.GetValue<string>("FrontendUrl")!);
+                spaBuilder.UseProxyToSpaDevelopmentServer(_configuration.GetValue<string>("FrontendUrl")!);
             }
         });
     }

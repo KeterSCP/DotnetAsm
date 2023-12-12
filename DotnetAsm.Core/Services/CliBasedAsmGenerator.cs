@@ -37,7 +37,7 @@ public class CliBasedAsmGenerator(ICodeWriter codeWriter, IOptions<CodeWriterSet
 
         await codeWriter.WriteCodeAsync(request.CsharpCode);
 
-        using var dotnetBuildProcess = new Process
+         using var dotnetBuildProcess = new Process
         {
             StartInfo = new ProcessStartInfo
             {
@@ -56,15 +56,19 @@ public class CliBasedAsmGenerator(ICodeWriter codeWriter, IOptions<CodeWriterSet
 
         dotnetBuildProcess.Start();
 
+        // See https://github.com/dotnet/runtime/issues/46382
+        var buildStdOutTask = dotnetBuildProcess.StandardOutput.ReadToEndAsync(ct);
+
         await Measure.AsyncAction(() => dotnetBuildProcess.WaitForExitAsync(ct), "dotnetBuildProcess.WaitForExitAsync");
+
+        var buildStdOut = await buildStdOutTask;
 
         if (dotnetBuildProcess.ExitCode != 0)
         {
-            string stdOut = await dotnetBuildProcess.StandardOutput.ReadToEndAsync(ct);
             return new AsmGenerationResponse
             {
                 Asm = "",
-                Errors = stdOut
+                Errors = buildStdOut
             };
         }
 

@@ -11,7 +11,7 @@ There is a great extension for Visual Studio called [Disasmo](https://github.com
 - .NET 7 RC1 SDK or higher
 
 # :warning: **Do not use external user input**
-Code that you write in the editor is executed on your machine. Make sure you don't run anything that can corrupt your system!
+Code that you write in the editor has no sandbox environment and is executed on your machine. Make sure you don't run anything that can corrupt your system!
 
 # How to use it
 1. Run the `DotnetAsm.Api.exe` executable file
