@@ -12,6 +12,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnetAsm.Roslyn", "DotnetAsm.Roslyn\DotnetAsm.Roslyn.csproj", "{A2F5487C-C8E3-47A1-A553-1CDB11F190AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnetAsm.Roslyn.Tests", "DotnetAsm.Roslyn.Tests\DotnetAsm.Roslyn.Tests.csproj", "{E1C1EC25-6A17-438C-940B-9C869DB3A4D0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,5 +32,13 @@ Global
 		{8E165C3A-67BB-43EF-93D2-4DF4ED84E602}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0A63D98D-73A9-4583-BEE6-0CFEAD3FC4FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0A63D98D-73A9-4583-BEE6-0CFEAD3FC4FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2F5487C-C8E3-47A1-A553-1CDB11F190AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2F5487C-C8E3-47A1-A553-1CDB11F190AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2F5487C-C8E3-47A1-A553-1CDB11F190AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2F5487C-C8E3-47A1-A553-1CDB11F190AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1C1EC25-6A17-438C-940B-9C869DB3A4D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1C1EC25-6A17-438C-940B-9C869DB3A4D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1C1EC25-6A17-438C-940B-9C869DB3A4D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1C1EC25-6A17-438C-940B-9C869DB3A4D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

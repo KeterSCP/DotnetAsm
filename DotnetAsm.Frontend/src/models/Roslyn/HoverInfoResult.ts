@@ -1,5 +1,7 @@
+import RoslynSyntaxToken from "./RoslynSyntaxToken";
+
 export default class HoverInfoResult {
-    information!: string;
-    offsetFrom!: number;
-    offsetTo!: number;
+  tokens!: RoslynSyntaxToken[];
+  offsetFrom!: number;
+  offsetTo!: number;
 }

@@ -1,31 +1,33 @@
 <template>
-    <router-view />
+  <router-view />
 </template>
 
 <script setup lang="ts">
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import "./monaco/csharp-semantic-lang";
 import "./monaco/ryujit-xarch-asm-lang";
+import "./monaco/DotnetAsmTheme";
 
 import { onMounted, watch } from "vue";
 import { Dark } from "quasar";
 import darkTheme, { saveTheme } from "src/theme/dark-theme";
 
 self.MonacoEnvironment = {
-    getWorker() {
-        return new editorWorker();
-    },
+  getWorker() {
+    return new editorWorker();
+  },
 };
 
 onMounted(() => {
-    updateTheme(darkTheme.value);
+  updateTheme(darkTheme.value);
 });
 
 watch(darkTheme, (currentValue: boolean) => {
-    updateTheme(currentValue);
+  updateTheme(currentValue);
 });
 
 function updateTheme(darkTheme: boolean) {
-    Dark.set(darkTheme);
-    saveTheme(darkTheme);
+  Dark.set(darkTheme);
+  saveTheme(darkTheme);
 }
 </script>
