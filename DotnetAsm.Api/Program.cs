@@ -1,6 +1,7 @@
 using DotnetAsm.Core.ConfigOptions;
 using DotnetAsm.Core.Interfaces;
 using DotnetAsm.Core.Services;
+using DotnetAsm.Roslyn;
 
 using Serilog;
 using Serilog.Events;
@@ -19,6 +20,7 @@ builder.Services.AddSerilog(loggerConfiguration => loggerConfiguration
     .WriteTo.Console());
 
 builder.Services.AddControllers();
+builder.Services.AddCors();
 
 #if DEBUG
 
@@ -34,6 +36,7 @@ builder.Services.AddOptions<CodeWriterSettings>()
 
 builder.Services.AddSingleton<ICodeWriter, CodeWriter>();
 builder.Services.AddSingleton<IAsmGenerator, CliBasedAsmGenerator>();
+builder.Services.AddSingleton<RoslynWorkspaceWrapper>();
 
 var app = builder.Build();
 
@@ -47,5 +50,12 @@ app.UseSwaggerUI();
 app.UseSerilogRequestLogging();
 
 app.MapControllers();
+
+app.UseCors(cors =>
+{
+    cors.AllowAnyHeader()
+        .AllowAnyMethod()
+        .WithOrigins(Environment.GetEnvironmentVariable("FRONTEND_URL") ?? throw new InvalidOperationException("FRONTEND_URL environment variable is not set."));
+});
 
 await app.RunAsync();

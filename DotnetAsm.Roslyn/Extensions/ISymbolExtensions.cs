@@ -6,18 +6,24 @@ namespace DotnetAsm.Roslyn.Extensions;
 
 internal static class ISymbolExtensions
 {
-    public static IReadOnlyList<RoslynSyntaxToken> GetModifiersTokens(this ISymbol methodSymbol)
+    public static IReadOnlyList<RoslynSyntaxToken> GetModifiersTokens(this ISymbol symbol)
     {
         var result = new List<RoslynSyntaxToken>
         {
-            RoslynSyntaxToken.KeywordToken(methodSymbol.DeclaredAccessibility.ToDisplayString())
+            RoslynSyntaxToken.KeywordToken(symbol.DeclaredAccessibility.ToDisplayString())
         };
 
-        if (methodSymbol.IsStatic)
+        if (symbol is IPropertySymbol { IsRequired: true })
+        {
+            result.Add(RoslynSyntaxToken.Space);
+            result.Add(RoslynSyntaxToken.KeywordToken("required"));
+        }
+
+        if (symbol.IsStatic)
         {
             result.Add(RoslynSyntaxToken.Space);
 
-            if (methodSymbol is IFieldSymbol { IsConst: true })
+            if (symbol is IFieldSymbol { IsConst: true })
             {
                 result.Add(RoslynSyntaxToken.KeywordToken("const"));
             }
@@ -27,31 +33,31 @@ internal static class ISymbolExtensions
             }
         }
 
-        if (methodSymbol.IsAbstract)
+        if (symbol.IsAbstract)
         {
             result.Add(RoslynSyntaxToken.Space);
             result.Add(RoslynSyntaxToken.KeywordToken("abstract"));
         }
 
-        if (methodSymbol.IsVirtual)
+        if (symbol.IsVirtual)
         {
             result.Add(RoslynSyntaxToken.Space);
             result.Add(RoslynSyntaxToken.KeywordToken("virtual"));
         }
 
-        if (methodSymbol.IsOverride)
+        if (symbol.IsOverride)
         {
             result.Add(RoslynSyntaxToken.Space);
             result.Add(RoslynSyntaxToken.KeywordToken("override"));
         }
 
-        if (methodSymbol.IsSealed)
+        if (symbol.IsSealed)
         {
             result.Add(RoslynSyntaxToken.Space);
             result.Add(RoslynSyntaxToken.KeywordToken("sealed"));
         }
 
-        if (methodSymbol.IsExtern)
+        if (symbol.IsExtern)
         {
             result.Add(RoslynSyntaxToken.Space);
             result.Add(RoslynSyntaxToken.KeywordToken("extern"));

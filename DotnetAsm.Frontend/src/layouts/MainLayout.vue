@@ -160,7 +160,7 @@ async function generateAsmCode() {
 
   loading.value = true;
 
-  const response = await fetch("/api/generate-asm", {
+  const response = await fetch(`${process.env.BACKEND_URL}/api/generate-asm`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

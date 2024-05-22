@@ -40,6 +40,7 @@ public static class RoslynProvider
             {
                 continue;
             }
+
             var symbolKindValue = Enum.Parse<SymbolKind>(symbolKind);
 
             var description = await completionService.GetDescriptionAsync(projectWrapper.Document, completionItem, cancellationToken: ct);
@@ -77,6 +78,17 @@ public static class RoslynProvider
 
         var offsetFrom = location.SourceSpan.Start;
         var offsetTo = location.SourceSpan.End;
+
+        // Check if the position is within the syntax node
+        if (position < offsetFrom || position > offsetTo)
+        {
+            return new RoslynHoverResult
+            {
+                Tokens = [],
+                OffsetFrom = offsetFrom,
+                OffsetTo = offsetTo
+            };
+        }
 
         if (syntaxNode is LocalFunctionStatementSyntax localFunctionStatementSyntax)
         {
@@ -130,6 +142,11 @@ public static class RoslynProvider
             else
             {
                 var declaredSymbol = projectWrapper.SemanticModel.GetDeclaredSymbol(variableDeclaratorSyntax, cancellationToken: ct);
+                // TODO: apparently hovering over field X int this code also gives VariableDeclaratorSyntax:
+                // struct MyStruct
+                // {
+                //    public int X;
+                // }
                 Debug.Assert(declaredSymbol is ILocalSymbol);
 
                 tokens = SymbolInformationBuilder.BuildLocalSymbolInformation((ILocalSymbol)declaredSymbol);
@@ -139,25 +156,9 @@ public static class RoslynProvider
         {
             var symbolInfo = projectWrapper.SemanticModel.GetSymbolInfo(identifierNameSyntax, cancellationToken: ct);
 
-            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
+            if (symbolInfo.Symbol is not null)
             {
-                tokens = SymbolInformationBuilder.BuildMethodSymbolInformation(methodSymbol);
-            }
-            else if (symbolInfo.Symbol is ITypeSymbol typeSymbol)
-            {
-                tokens = SymbolInformationBuilder.BuildTypeSymbolInformation(typeSymbol);
-            }
-            else if (symbolInfo.Symbol is ILocalSymbol localSymbol)
-            {
-                tokens = SymbolInformationBuilder.BuildLocalSymbolInformation(localSymbol);
-            }
-            else if (symbolInfo.Symbol is IParameterSymbol parameterSymbol)
-            {
-                tokens = SymbolInformationBuilder.BuildParameterSymbolInformation(parameterSymbol);
-            }
-            else if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
-            {
-                tokens = SymbolInformationBuilder.BuildFieldSymbolInformation(fieldSymbol);
+                tokens = SymbolInformationBuilder.BuildSymbolInformation(symbolInfo.Symbol);
             }
         }
 
@@ -180,6 +181,33 @@ public static class RoslynProvider
         await projectWrapper.UpdateSourceCodeAndCompileAsync(sourceCode, ct);
 
         var results = await SemanticHighlighter.GetHighlightSpansAsync(projectWrapper.Document, ct);
+
+        return results;
+    }
+
+    public static async Task<List<RoslynDiagnostic>> GetDiagnosticsAsync(
+        Guid projectId,
+        string sourceCode,
+        RoslynWorkspaceWrapper workspaceWrapper,
+        CancellationToken ct = default)
+    {
+        var projectWrapper = await workspaceWrapper.GetOrCreateProjectAsync(projectId, ct);
+
+        await projectWrapper.UpdateSourceCodeAndCompileAsync(sourceCode, ct);
+
+        var diagnostics = projectWrapper.EmitResult.Diagnostics;
+
+        var results = diagnostics
+            .Where(d => d.Severity != DiagnosticSeverity.Hidden)
+            .Select(d => new RoslynDiagnostic
+            {
+                Id = d.Id,
+                Message = d.GetMessage(),
+                Severity = d.Severity,
+                OffsetFrom = d.Location.SourceSpan.Start,
+                OffsetTo = d.Location.SourceSpan.End
+            })
+            .ToList();
 
         return results;
     }

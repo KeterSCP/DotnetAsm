@@ -2,22 +2,23 @@ import type monacoTypes from "monaco-editor/esm/vs/editor/editor.api";
 
 import * as monaco from "monaco-editor";
 import RoslynCompletionResult from "src/models/Roslyn/RoslynCompletionResult";
-import SignatureHelpResult from "src/models/Roslyn/SignatureHelpResult";
+// import SignatureHelpResult from "src/models/Roslyn/SignatureHelpResult";
 import HoverInfoResult from "src/models/Roslyn/HoverInfoResult";
-import CodeCheckResult from "src/models/Roslyn/CodeCheckResult";
 import { mapToMonacoCompletionItemKind } from "src/models/Roslyn/SymbolKind";
 import { formatTokenToHtml } from "src/models/Roslyn/RoslynSyntaxToken";
 import { languageName } from "./csharp-semantic-lang";
 import SemanticHighlightSpan from "src/models/Roslyn/SemanticHighlight/SemanticHighlightSpan";
 import CSharpTokenType from "./CSharpTokenType";
 import { mapToMonacoTokenNumber } from "src/models/Roslyn/SemanticHighlight/SemanticHighlightClassification";
+import RoslynDiagnostic from "src/models/Roslyn/Diagnostics/RoslynDiagnostic";
+import { mapToMonacoSeverity } from "src/models/Roslyn/Diagnostics/RoslynDiagnosticSeverity";
 
 export default function registerCSharpLanguageProvider(): void {
   registerCompletions();
   // registerSignatureCompletions();
   registerHoverCompletions();
   registerSemanticTokensProvider();
-  // registerCodeChecks();
+  registerDiagnosticsCheck();
 }
 
 function registerSemanticTokensProvider() {
@@ -32,6 +33,7 @@ function registerSemanticTokensProvider() {
     provideDocumentSemanticTokens: async (model) => {
       const highlights = await sendPostRequest<SemanticHighlightSpan[]>("/api/roslyn/semantic-highlight", {
         Code: model.getValue(),
+        // TODO: generate this
         ProjectId: "29BFD5DD-B9FC-45E1-A5C3-DC3218F3779E",
       });
 
@@ -110,47 +112,47 @@ function registerCompletions() {
   });
 }
 
-function registerSignatureCompletions() {
-  monaco.languages.registerSignatureHelpProvider(languageName, {
-    signatureHelpTriggerCharacters: ["("],
-    signatureHelpRetriggerCharacters: [","],
-    provideSignatureHelp: async (model, position) => {
-      const signatures = [];
+// function registerSignatureCompletions() {
+//   monaco.languages.registerSignatureHelpProvider(languageName, {
+//     signatureHelpTriggerCharacters: ["("],
+//     signatureHelpRetriggerCharacters: [","],
+//     provideSignatureHelp: async (model, position) => {
+//       const signatures = [];
 
-      const responseSignatures = await sendPostRequest<SignatureHelpResult>("/api/roslyn/signature", {
-        Code: model.getValue(),
-        Position: model.getOffsetAt(position),
-        Assemblies: [],
-      });
+//       const responseSignatures = await sendPostRequest<SignatureHelpResult>("/api/roslyn/signature", {
+//         Code: model.getValue(),
+//         Position: model.getOffsetAt(position),
+//         Assemblies: [],
+//       });
 
-      for (const signature of responseSignatures.signatures) {
-        const params = [];
-        for (const param of signature.parameters) {
-          params.push({
-            label: param.label,
-            documentation: param.documentation ?? "",
-          });
-        }
-        signatures.push({
-          label: signature.label,
-          documentation: signature.documentation ?? "",
-          parameters: params,
-        });
-      }
+//       for (const signature of responseSignatures.signatures) {
+//         const params = [];
+//         for (const param of signature.parameters) {
+//           params.push({
+//             label: param.label,
+//             documentation: param.documentation ?? "",
+//           });
+//         }
+//         signatures.push({
+//           label: signature.label,
+//           documentation: signature.documentation ?? "",
+//           parameters: params,
+//         });
+//       }
 
-      return {
-        value: {
-          signatures: signatures,
-          activeParameter: responseSignatures.activeParameter,
-          activeSignature: responseSignatures.activeSignature,
-        },
-        dispose: () => {
-          // Nothing to dispose
-        },
-      };
-    },
-  });
-}
+//       return {
+//         value: {
+//           signatures: signatures,
+//           activeParameter: responseSignatures.activeParameter,
+//           activeSignature: responseSignatures.activeSignature,
+//         },
+//         dispose: () => {
+//           // Nothing to dispose
+//         },
+//       };
+//     },
+//   });
+// }
 
 function registerHoverCompletions() {
   monaco.languages.registerHoverProvider(languageName, {
@@ -180,27 +182,28 @@ function registerHoverCompletions() {
   });
 }
 
-function registerCodeChecks() {
+function registerDiagnosticsCheck() {
   monaco.editor.onDidCreateModel(function (model) {
     async function validate() {
-      const codeCheckResponse = await sendPostRequest<CodeCheckResult[]>("/api/roslyn/code-check", {
+      const diagnosticsResponse = await sendPostRequest<RoslynDiagnostic[]>("/api/roslyn/diagnostics", {
         Code: model.getValue(),
-        Assemblies: [],
+        // TODO: generate this
+        ProjectId: "29BFD5DD-B9FC-45E1-A5C3-DC3218F3779E",
       });
 
-      const markers = [];
+      const markers = [] as monaco.editor.IMarkerData[];
 
-      for (const elem of codeCheckResponse) {
-        const posStart = model.getPositionAt(elem.offsetFrom);
-        const posEnd = model.getPositionAt(elem.offsetTo);
+      for (const diagnostic of diagnosticsResponse) {
+        const posStart = model.getPositionAt(diagnostic.offsetFrom);
+        const posEnd = model.getPositionAt(diagnostic.offsetTo);
         markers.push({
-          severity: elem.severity,
+          severity: mapToMonacoSeverity(diagnostic.severity),
           startLineNumber: posStart.lineNumber,
           startColumn: posStart.column,
           endLineNumber: posEnd.lineNumber,
           endColumn: posEnd.column,
-          message: elem.message,
-          code: elem.id,
+          message: diagnostic.message,
+          code: diagnostic.id,
         });
       }
 
@@ -220,7 +223,7 @@ function registerCodeChecks() {
 }
 
 async function sendPostRequest<T>(url: string, data: unknown): Promise<T> {
-  const response = await fetch(url, {
+  const response = await fetch(`${process.env.BACKEND_URL}${url}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

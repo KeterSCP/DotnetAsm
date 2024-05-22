@@ -16,11 +16,11 @@ monaco.languages.setMonarchTokensProvider(languageName, {
         "keyword-xarch-asm",
       ],
       [
-        /\b(?:CS|DS|ES|FS|GS|SS|RAX|EAX|RBX|EBX|RCX|ECX|RDX|EDX|RCX|RIP|EIP|IP|RBP|RSP|ESP|SP|RSI|ESI|SI|RDI|EDI|DI|RFLAGS|EFLAGS|FLAGS|R(?:[8-9]|1[0-5])d?|(?:Y|X)MM(?:[0-9]|10|11|12|13|14|15)|(?:A|B|C|D)(?:X|H|L)|CR(?:[0-4]|DR(?:[0-7]|TR6|TR7|EFER)))\b/,
+        /\b(?:CS|DS|ES|FS|GS|SS|RAX|EAX|RBX|EBX|RCX|ECX|RDX|EDX|RCX|RIP|EIP|IP|RBP|RSP|ESP|SP|RSI|ESI|SI|RDI|EDI|DI|RFLAGS|EFLAGS|FLAGS|R(?:[8-9]|1[0-5])d?|(?:Y|X|Z)MM(?:[0-9]|10|11|12|13|14|15)|(?:A|B|C|D)(?:X|H|L)|CR(?:[0-4]|DR(?:[0-7]|TR6|TR7|EFER)))\b/,
         "register-xarch-asm",
       ],
       [
-        /\b(?:d[bwdqtoy]|res[bwdqto]|equ|times|align|alignb|sectalign|section|ptr|byte|(ymm|xmm)word|bword|dword|gword|qword|short|incbin)\b/,
+        /\b(?:d[bwdqtoy]|res[bwdqto]|equ|times|align|alignb|sectalign|section|ptr|byte|(ymm|xmm|zmm)word|bword|dword|gword|qword|short|incbin)\b/,
         "directive-xarch-asm",
       ],
       [/\bG_M\d+_IG\d+:?\b/, "GM-label-xarch-asm"],

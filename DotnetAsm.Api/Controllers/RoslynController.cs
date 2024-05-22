@@ -2,6 +2,7 @@
 using DotnetAsm.Roslyn;
 using DotnetAsm.Roslyn.Completion.Models;
 using DotnetAsm.Roslyn.Hover.Models;
+using DotnetAsm.Roslyn.Models;
 using DotnetAsm.Roslyn.SemanticHighlight.Models;
 
 using Microsoft.AspNetCore.Mvc;
@@ -51,13 +52,17 @@ public class RoslynController : ControllerBase
         );
         return hoverInfoResult;
     }
-    //
-    // [HttpPost("/api/roslyn/code-check")]
-    // public async Task<CodeCheckResult[]> CodeCheck([FromBody] CodeCheckRequest codeCheckRequest)
-    // {
-    //     var codeCheckResults = await RoslynMonacoRequestHandler.Handle(codeCheckRequest);
-    //     return codeCheckResults;
-    // }
+
+    [HttpPost("/api/roslyn/diagnostics")]
+    public async Task<IEnumerable<RoslynDiagnostic>> GetDiagnostics([FromBody] RoslynDiagnosticsRequest request)
+    {
+        var diagnostics = await RoslynProvider.GetDiagnosticsAsync(
+            request.ProjectId,
+            request.Code,
+            _workspace
+        );
+        return diagnostics;
+    }
 
     [HttpPost("/api/roslyn/semantic-highlight")]
     public async Task<IEnumerable<SemanticHighlightSpan>> SemanticHighlight([FromBody] RoslynSemanticHighlightRequest request)

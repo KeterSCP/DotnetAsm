@@ -9,6 +9,20 @@ namespace DotnetAsm.Roslyn.Hover;
 
 internal static class SymbolInformationBuilder
 {
+    public static IReadOnlyList<RoslynSyntaxToken> BuildSymbolInformation(ISymbol symbol)
+    {
+        return symbol switch
+        {
+            IMethodSymbol methodSymbol => BuildMethodSymbolInformation(methodSymbol),
+            ITypeSymbol typeSymbol => BuildTypeSymbolInformation(typeSymbol),
+            ILocalSymbol localSymbol => BuildLocalSymbolInformation(localSymbol),
+            IParameterSymbol parameterSymbol => BuildParameterSymbolInformation(parameterSymbol),
+            IFieldSymbol fieldSymbol => BuildFieldSymbolInformation(fieldSymbol),
+            IPropertySymbol propertySymbol => BuildPropertySymbolInformation(propertySymbol),
+            _ => throw new NotSupportedException($"Symbol type {symbol.GetType()} is not supported.")
+        };
+    }
+
     public static IReadOnlyList<RoslynSyntaxToken> BuildMethodSymbolInformation(IMethodSymbol methodSymbol)
     {
         var tokens = new List<RoslynSyntaxToken>();
@@ -46,6 +60,12 @@ internal static class SymbolInformationBuilder
             tokens.Add(RoslynSyntaxToken.Space);
 
             tokens.Add(RoslynSyntaxToken.TextToken(parameter.Name));
+
+            if (parameter.HasExplicitDefaultValue)
+            {
+                tokens.Add(RoslynSyntaxToken.TextToken(" = "));
+                tokens.Add(RoslynSyntaxToken.LiteralToken(parameter.ExplicitDefaultValue?.ToString() ?? "null"));
+            }
 
             if (i < parameters.Length - 1)
             {
@@ -155,6 +175,37 @@ internal static class SymbolInformationBuilder
             tokens.Add(RoslynSyntaxToken.Space);
             tokens.Add(RoslynSyntaxToken.LiteralToken(fieldSymbol.ConstantValue.ToString()!));
         }
+
+        return tokens;
+    }
+
+    public static IReadOnlyList<RoslynSyntaxToken> BuildPropertySymbolInformation(IPropertySymbol propertySymbol)
+    {
+        var tokens = new List<RoslynSyntaxToken>();
+
+        tokens.AddRange(propertySymbol.GetModifiersTokens());
+        tokens.Add(RoslynSyntaxToken.Space);
+
+        tokens.Add(new RoslynSyntaxToken
+        {
+            Text = propertySymbol.Type.GetDisplayText(),
+            TokenType = propertySymbol.Type.GetTokenType()
+        });
+
+        tokens.Add(RoslynSyntaxToken.Space);
+        tokens.Add(RoslynSyntaxToken.TextToken(propertySymbol.Name));
+
+        tokens.Add(RoslynSyntaxToken.TextToken(" { "));
+        tokens.Add(RoslynSyntaxToken.KeywordToken("get"));
+        tokens.Add(RoslynSyntaxToken.TextToken("; "));
+
+        if (!propertySymbol.IsReadOnly)
+        {
+            tokens.Add(RoslynSyntaxToken.KeywordToken("set"));
+            tokens.Add(RoslynSyntaxToken.TextToken("; "));
+        }
+
+        tokens.Add(RoslynSyntaxToken.TextToken("}"));
 
         return tokens;
     }
