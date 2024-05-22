@@ -5,6 +5,9 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <PublishIISAssets>false</PublishIISAssets>
+
+        <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+        <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
     </PropertyGroup>
 
     <ItemGroup>
