@@ -6,5 +6,5 @@ const darkTheme = ref((localStorage.getItem(themeDarkStorageName) ?? "false") ==
 export default darkTheme;
 
 export function saveTheme(dark: boolean) {
-    localStorage.setItem(themeDarkStorageName, dark.toString());
+  localStorage.setItem(themeDarkStorageName, dark.toString());
 }

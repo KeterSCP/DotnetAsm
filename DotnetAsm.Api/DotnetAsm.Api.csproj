@@ -5,20 +5,23 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <PublishIISAssets>false</PublishIISAssets>
+
+        <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+        <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DotNetProjects.MonacoRoslynCompletionProvider" Version="0.3.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
         <PackageReference Include="Serilog.Expressions" Version="4.0.0" />
     </ItemGroup>
-    
+
     <ItemGroup Condition="'$(Configuration)'=='Debug'">
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\DotnetAsm.Core\DotnetAsm.Core.csproj"/>
+        <ProjectReference Include="..\DotnetAsm.Roslyn\DotnetAsm.Roslyn.csproj" />
     </ItemGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -37,6 +40,22 @@
             <TargetPath>DotnetAsm.Sandbox\DotnetAsm.Sandbox.csproj</TargetPath>
         </ContentWithTargetPath>
     </ItemGroup>
+
+    <Target Name="CopyFrameworkXmlDocumentation" AfterTargets="ResolveReferences">
+        <ItemGroup>
+            <None Include="@(Reference->'%(RootDir)%(Directory)%(Filename)%(Extension)')"
+                  Link="@(Reference->'ref-assemblies\%(Filename)%(Extension)')"
+                  Condition="$([System.String]::new('%(Filename)').StartsWith('System')) or '%(Filename)' == 'netstandard'">
+                <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            </None>
+            <None Include="@(Reference->'%(RootDir)%(Directory)%(Filename).xml')"
+                  Link="@(Reference->'ref-assemblies\%(Filename).xml')"
+                  Condition="($([System.String]::new('%(Filename)').StartsWith('System')) or '%(Filename)' == 'netstandard')
+                          and Exists('%(RootDir)%(Directory)%(Filename).xml')">
+                <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            </None>
+        </ItemGroup>
+    </Target>
 
 
 </Project>

@@ -2,7 +2,7 @@
 Param(
   [switch][Alias('h')]$help,
   [ValidateSet("win-x64", "win-x86", "win-arm", "win-arm64", "linux-x64", "linux-arm", "linux-arm64", "osx-x64")][string[]]$rids,
-  [switch][Alias('sf')]$singlefile = $true,
+  [switch][Alias('sf')]$singlefile = $false,
   [switch][Alias('sc')]$selfcontained = $false
 )
 
@@ -10,7 +10,7 @@ function Get-Help() {
   Write-Host "Parameters:"
   Write-Host "  -rids                   Runtime identifiers: win-x64, win-x86, win-arm, win-arm64, linux-x64, linux-arm, linux-arm64 or osx-x64"
   Write-Host "                          Pass a comma-separated list to publish for multiple RIDs"
-  Write-Host "  -singlefile             Publish as single file. (default: true)"
+  Write-Host "  -singlefile             Publish as single file. (default: false)"
   Write-Host "  -selfcontained          Publish self-contained. (default: false)"
 }
 

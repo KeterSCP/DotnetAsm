@@ -30,14 +30,13 @@ public class CliBasedAsmGenerator(ICodeWriter codeWriter, IOptions<CodeWriterSet
 
         string tfm = request.TargetFramework switch
         {
-            TargetFramework.Net70 => "net7.0",
             TargetFramework.Net80 => "net8.0",
             _ => throw new SwitchExpressionException(request.TargetFramework)
         };
 
         await codeWriter.WriteCodeAsync(request.CsharpCode);
 
-         using var dotnetBuildProcess = new Process
+        using var dotnetBuildProcess = new Process
         {
             StartInfo = new ProcessStartInfo
             {
@@ -82,6 +81,8 @@ public class CliBasedAsmGenerator(ICodeWriter codeWriter, IOptions<CodeWriterSet
                 FileName = _shell,
                 EnvironmentVariables =
                 {
+                    ["DOTNET_TC_AggressiveTiering"] = "1",
+                    ["DOTNET_TC_CallCountingDelayMs"] = "0",
                     ["DOTNET_JitDisasm"] = $"{request.MethodName}",
                     ["DOTNET_JitDisasmSummary"] = "1",
                     ["DOTNET_ReadyToRun"] = request.UseReadyToRun ? "1" : "0",

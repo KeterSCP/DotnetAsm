@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.8.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="4.8.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.8.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="DotnetAsm.Roslyn.Tests" />
+    </ItemGroup>
+
+    <Target Name="CopyFrameworkXmlDocumentation" AfterTargets="ResolveReferences">
+        <ItemGroup>
+            <None Include="@(Reference->'%(RootDir)%(Directory)%(Filename)%(Extension)')"
+                     Link="@(Reference->'ref-assemblies\%(Filename)%(Extension)')"
+                     Condition="$([System.String]::new('%(Filename)').StartsWith('System')) or '%(Filename)' == 'netstandard'">
+                <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            </None>
+            <None Include="@(Reference->'%(RootDir)%(Directory)%(Filename).xml')"
+                     Link="@(Reference->'ref-assemblies\%(Filename).xml')"
+                     Condition="($([System.String]::new('%(Filename)').StartsWith('System')) or '%(Filename)' == 'netstandard')
+                          and Exists('%(RootDir)%(Directory)%(Filename).xml')">
+                <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            </None>
+        </ItemGroup>
+    </Target>
+
+</Project>
