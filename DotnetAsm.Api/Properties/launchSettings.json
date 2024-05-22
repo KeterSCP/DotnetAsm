@@ -3,9 +3,8 @@
     "profiles": {
         "dev": {
             "commandName": "Project",
-            "dotnetRunMessages": true,
             "launchBrowser": true,
-            "launchUrl": "",
+            "launchUrl": "swagger",
             "applicationUrl": "http://localhost:9000",
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Development"

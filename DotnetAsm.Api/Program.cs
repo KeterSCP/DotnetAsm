@@ -1,43 +1,51 @@
+using DotnetAsm.Core.ConfigOptions;
+using DotnetAsm.Core.Interfaces;
+using DotnetAsm.Core.Services;
+
 using Serilog;
 using Serilog.Events;
 
-namespace DotnetAsm.Api;
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-public static class Program
-{
-    public static void Main(string[] args)
-    {
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSerilog(loggerConfiguration => loggerConfiguration
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console());
+
+builder.Services.AddControllers();
+
 #if DEBUG
-            // .Filter.ByExcluding("RequestPath not like '/api/%'")
-#else
-            .Filter.ByExcluding("RequestPath like '/index.html'")
-#endif
-            .CreateLogger();
 
-        try
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
-        catch (Exception ex)
-        {
-            Log.Fatal(ex, "Fatal error occurred during application start. Press ENTER to exit...");
-            Console.ReadLine();
-        }
-        finally
-        {
-            Log.CloseAndFlush();
-        }
-    }
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-    public static IHostBuilder CreateHostBuilder(string[] args)
-    {
-        return Host.CreateDefaultBuilder(args)
-            .UseSerilog()
-            .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
-    }
-}
+#endif // DEBUG
+
+builder.Services.AddOptions<CodeWriterSettings>()
+    .Bind(builder.Configuration.GetSection(CodeWriterSettings.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddSingleton<ICodeWriter, CodeWriter>();
+builder.Services.AddSingleton<IAsmGenerator, CliBasedAsmGenerator>();
+
+var app = builder.Build();
+
+#if DEBUG
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+#endif // DEBUG
+
+app.UseSerilogRequestLogging();
+
+app.MapControllers();
+
+await app.RunAsync();
